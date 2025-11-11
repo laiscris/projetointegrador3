@@ -2,8 +2,6 @@ import pandas as pd
 
 # Datasets
 df_tratado = pd.read_csv('precos_tratado.csv')
-df_tratado_sp = pd.read_csv('precos_sem_pandemia.csv')
-df_periodo_pandemia = pd.read_csv('precos_periodo_pandemia.csv')
 
 # Filtra de acordo com a escolha de combustível
 def filtra_combustivel(escolha_combustivel):
