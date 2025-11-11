@@ -49,7 +49,7 @@ preco_medio_revenda = df_filtra_dataset.groupby('PRODUTO')['PREÇO MÉDIO REVEND
 row1 = st.columns(len(selecao_comb))
 cont = 0
 for col in row1:
-    container = col.container(border=True, gap=None)
+    container = col.container(border=True)
     container.write(f'Preço Médio de Revenda - {combustiveis[cont]}')
     container.markdown(f'### **R${round(preco_medio_revenda[cont], 2)}**')
     
