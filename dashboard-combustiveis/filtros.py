@@ -1,7 +1,7 @@
 import pandas as pd
 
 # Datasets
-df_tratado = pd.read_csv('precos_tratado.csv')
+df_tratado = pd.read_csv('dashboard-combustiveis\precos_tratado.csv')
 
 # Filtra de acordo com a escolha de combustível
 def filtra_combustivel(escolha_combustivel):
