@@ -1,0 +1,6 @@
+venv/
+.venv/
+__pycache__/
+*.pyc
+*.log
+.env # Arquivos de variáveis de ambiente sensíveis
