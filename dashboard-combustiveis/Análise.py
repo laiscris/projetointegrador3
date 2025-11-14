@@ -119,8 +119,17 @@ with col2:
 st.divider()
 
 st.markdown('## Variação do Preço Médio de Revenda')
-container2 = st.container(border=True)
+container2 = st.container(border=False)
 col1, col2 = container2.columns([1, 2])
+
+container2.html("""
+    <style>
+    [data-testid="stHorizontalBlock"] > [data-testid="stVerticalBlock"]:first-child {
+        min-height: 900px; 
+        border: 2px dashed red; 
+    }
+    </style>
+""")
 
 with col1:
     for i in range(len(selecao_comb)):
