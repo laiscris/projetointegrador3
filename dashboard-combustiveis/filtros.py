@@ -1,8 +1,12 @@
 import pandas as pd
 import streamlit as st
+import os
 
 # Datasets
-df_tratado = pd.read_csv('precos_tratado.csv')
+# Resolvendo problema do caminho do windows
+base_path = os.path.dirname(__file__)
+csv_path = os.path.join(base_path, 'precos_tratado.csv')
+df_tratado = pd.read_csv(csv_path)
 
 # Filtra de acordo com a escolha de combustível
 @st.cache_data
