@@ -44,7 +44,11 @@ df_comparacao_final = df_filtra_mes.copy()
 # Criar uma coluna de data unificada para plotagem
 df_comparacao_final['DATA'] = pd.to_datetime(df_comparacao_final['ANO_SEP'].astype(str) + '-' + df_comparacao_final['MÊS_SEP'].astype(str))
 
-st.dataframe(df_comparacao_final, use_container_width=True)
+st.markdown('''
+    * Abaixo de 70%, o preço do Etanol representa menos de 70% do preço da Gasolina. Portanto, o etanol é mais vantajoso.
+    * Acima de 70%, o preço do Etanol representa mais de 70% do preço da Gasolina. Portanto, a gasolina compensa mais
+    * = 70%, indiferença energética
+''')
 
 # Gráfico de Linha para a Regra dos 70%
 grafico_comparacao, ax = plt.subplots(figsize=(10, 5))
@@ -65,9 +69,10 @@ ax.tick_params(rotation=45)
 grafico_comparacao.tight_layout()
 st.pyplot(grafico_comparacao)
 
-st.markdown('''
-* Abaixo de 70%, o preço do Etanol representa menos de 70% do preço da Gasolina. Portanto, o etanol é mais vantajoso.
-* Acima de 70%, o preço do Etanol representa mais de 70% do preço da Gasolina. Portanto, a gasolina compensa mais
-* = 70%, indiferença energética
-''')
+df_comparacao_mostrar = df_comparacao_final.loc[:, ['DATA', 'ETANOL HIDRATADO', 'GASOLINA COMUM', 'RAZAO_ETANOL_GASOLINA', '% RAZAO ETANOL_GASOLINA']]
+
+# Expander para mostrar df
+mostrar_df = st.expander('Marque para exibir o DataFrame', expanded=False,)
+mostrar_df.subheader("DataFrame da Razão Etanol/Gasolina")
+mostrar_df.dataframe(df_comparacao_mostrar)
 
