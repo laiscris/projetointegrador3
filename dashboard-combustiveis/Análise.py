@@ -47,23 +47,25 @@ df_filtra_dataset = f.filtra_dataset(selecao_comb, sel_anos, sel_meses)
 df_filtra_dataset['DATA'] = pd.to_datetime(df_filtra_dataset['ANO_SEP'].astype(str) + '-' + df_filtra_dataset['MÊS_SEP'].astype(str))
 
 # Métricas --------------------------------------------------------------------------------------
-preco_medio_revenda = df_filtra_dataset.groupby('PRODUTO')['PREÇO MÉDIO REVENDA'].mean()
+colunas_agregar = ['PREÇO MÉDIO REVENDA', 'PREÇO MÍNIMO REVENDA', 'PREÇO MÁXIMO REVENDA']
+preco_medio_revenda = df_filtra_dataset.groupby('PRODUTO')[colunas_agregar].mean()
 
 # Linha com 3 Colunas e 3 Containeres
 row1 = st.columns(len(selecao_comb))
-cont = 0
-for col in row1:
+for idx, col in enumerate(row1):
     container = col.container(border=True)
-    container.write(f'Preço Médio de Revenda - {combustiveis[cont]}')
-    container.markdown(f'### **R${round(preco_medio_revenda[cont], 2)}**')
+    combustivel_atual = selecao_comb[idx]
+    container.write(f'Preço Médio de Revenda - {combustivel_atual}')
+    valor_medio = preco_medio_revenda.loc[combustivel_atual, 'PREÇO MÉDIO REVENDA']
+    container.markdown(f'### **R${round(valor_medio, 2)}**')
     
     # Mostra o preço mais alto e o mais baixo no período selecionado
-    df = df_filtra_dataset[df_filtra_dataset.PRODUTO == combustiveis[cont]]
+    df = df_filtra_dataset[df_filtra_dataset.PRODUTO == combustivel_atual].copy()
     row2 = container.columns(2)
-    row2[0].markdown(f'Mínimo: **R${round(df['PREÇO MÉDIO REVENDA'].min(), 2)}**')
-    row2[1].markdown(f'Máximo: **R${round(df['PREÇO MÉDIO REVENDA'].max(), 2)}**')
-    cont+=1
-
+    minimo = df['PREÇO MÍNIMO REVENDA'].min()
+    maximo = df['PREÇO MÁXIMO REVENDA'].max()
+    row2[0].markdown(f'Mínimo: **R${round(minimo, 2)}**')
+    row2[1].markdown(f'Máximo: **R${round(maximo, 2)}**')
 
 # Gráficos -----------------------------------------------------------------------------------
 
