@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+import os
 import filtros as f
 
 # Configuração do nome da aba
@@ -15,7 +16,10 @@ st.set_page_config(
 st.title('Dashboard de Análise e Previsão do Preço de Combustíveis')
 
 # Datasets
-df_tratado = pd.read_csv('precos_tratado.csv')
+# Resolvendo problema do caminho do windows
+base_path = os.path.dirname(__file__)
+csv_path = os.path.join(base_path, 'precos_tratado.csv')
+df_tratado = pd.read_csv(csv_path)
 
 # Sidebar Principal / Barra Lateral
 sidebar_principal = st.sidebar
@@ -29,9 +33,8 @@ combustiveis = df_tratado['PRODUTO'].unique()
 selecao_comb = sidebar_principal.multiselect('Tipo de Combustível', options=combustiveis, default=combustiveis)
 
 # Filtros de Período de Tempo
-periodo_ano = df_tratado['ANO_SEP'].unique()
-
 # Ano
+periodo_ano = df_tratado['ANO_SEP'].unique()
 sel_anos = sidebar_principal.slider('Escolha o ano', periodo_ano.min(), periodo_ano.max(), value=(periodo_ano.min(), periodo_ano.max()))
 df_filtra_dataset = f.filtra_dataset(combustivel=selecao_comb, ano=sel_anos, mes=None)
 
@@ -41,6 +44,7 @@ sel_meses = sidebar_principal.slider('Escolha o mês', periodo_mes.min(), period
 
 # Filtra o dataset de acordo com a escolha da seleção múltipla
 df_filtra_dataset = f.filtra_dataset(selecao_comb, sel_anos, sel_meses)
+df_filtra_dataset['DATA'] = pd.to_datetime(df_filtra_dataset['ANO_SEP'].astype(str) + '-' + df_filtra_dataset['MÊS_SEP'].astype(str))
 
 # Métricas --------------------------------------------------------------------------------------
 preco_medio_revenda = df_filtra_dataset.groupby('PRODUTO')['PREÇO MÉDIO REVENDA'].mean()
@@ -115,21 +119,19 @@ with col2:
 
     col2.pyplot(boxplot_meses)
 
+df_preco_medio = df_filtra_dataset.loc[:, ['PRODUTO', 'DATA', 'PREÇO MÉDIO REVENDA', 'PREÇO MÍNIMO REVENDA', 'PREÇO MÁXIMO REVENDA']]
+
+# Expander para mostrar df
+mostrar_df = st.expander('Marque para exibir o DataFrame', expanded=False,)
+mostrar_df.subheader("DataFrame de Preço Médio de Revenda")
+mostrar_df.dataframe(df_preco_medio)
+
 # Desvio Padrão
 st.divider()
 
 st.markdown('## Variação do Preço Médio de Revenda')
 container2 = st.container(border=False)
 col1, col2 = container2.columns([1, 2])
-
-container2.html("""
-    <style>
-    [data-testid="stHorizontalBlock"] > [data-testid="stVerticalBlock"]:first-child {
-        min-height: 900px; 
-        border: 2px dashed red; 
-    }
-    </style>
-""")
 
 with col1:
     for i in range(len(selecao_comb)):
@@ -155,3 +157,10 @@ with col2:
     ax.set_ylabel('Média de Desvio Padrão (R$/l)')
     lin_std_mes.tight_layout()
     col2.pyplot(lin_std_mes)
+
+df_variacao = df_filtra_dataset.loc[:, ['PRODUTO', 'DATA', 'DESVIO PADRÃO REVENDA', 'COEF DE VARIAÇÃO REVENDA']]
+
+# Expander para mostrar df
+mostrar_df = st.expander('Marque para exibir o DataFrame', expanded=False,)
+mostrar_df.subheader("DataFrame de Variação de Preço Médio de Revenda")
+mostrar_df.dataframe(df_variacao)
