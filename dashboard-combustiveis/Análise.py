@@ -46,28 +46,31 @@ sel_meses = sidebar_principal.slider('Escolha o mês', periodo_mes.min(), period
 df_filtra_dataset = f.filtra_dataset(selecao_comb, sel_anos, sel_meses)
 df_filtra_dataset['DATA'] = pd.to_datetime(df_filtra_dataset['ANO_SEP'].astype(str) + '-' + df_filtra_dataset['MÊS_SEP'].astype(str))
 
-# Métricas --------------------------------------------------------------------------------------
+# Métricas Preço Médio -------------------------------------------------------------------------
 colunas_agregar = ['PREÇO MÉDIO REVENDA', 'PREÇO MÍNIMO REVENDA', 'PREÇO MÁXIMO REVENDA']
 preco_medio_revenda = df_filtra_dataset.groupby('PRODUTO')[colunas_agregar].mean()
 
-# Linha com 3 Colunas e 3 Containeres
+# Cria uma linha
 row1 = st.columns(len(selecao_comb))
+# Cria containers de acordo com a quantidade de combustíveis selecionados
 for idx, col in enumerate(row1):
-    container = col.container(border=True)
+    container = col.container(height='stretch', border=True)
     combustivel_atual = selecao_comb[idx]
+    # Preço médio de revenda para cada combustível
     container.write(f'Preço Médio de Revenda - {combustivel_atual}')
     valor_medio = preco_medio_revenda.loc[combustivel_atual, 'PREÇO MÉDIO REVENDA']
     container.markdown(f'### **R${round(valor_medio, 2)}**')
     
     # Mostra o preço mais alto e o mais baixo no período selecionado
     df = df_filtra_dataset[df_filtra_dataset.PRODUTO == combustivel_atual].copy()
+    # Cria uma linha com mais duas colunas dentro da primeira linha
     row2 = container.columns(2)
     minimo = df['PREÇO MÍNIMO REVENDA'].min()
     maximo = df['PREÇO MÁXIMO REVENDA'].max()
     row2[0].markdown(f'Mínimo: **R${round(minimo, 2)}**')
     row2[1].markdown(f'Máximo: **R${round(maximo, 2)}**')
 
-# Gráficos -----------------------------------------------------------------------------------
+# Gráficos ---------------------------------------------------------------------------------------
 
 # Configurações gerais
 mapa_cores = {
@@ -80,16 +83,16 @@ mapa_cores = {
 sns.set_theme(style="whitegrid") 
 sns.despine()
 
-# Preço Médio Revenda  
-container1 = st.container()
-col1, col2 = container1.columns([2, 1])
+# Preço Médio Revenda
+# Container para os gráficos do preço médio revenda  
+container_preco_medio = st.container()
+col1, col2 = container_preco_medio.columns([2, 1])
 
 with col1:
     # Gráfico de linha de Comparação de Preço Médio
-    plt.figure(figsize=(8,3))
-    grafico_linha, ax = plt.subplots(figsize=(10,5))
+    grafico_linha, ax = plt.subplots(figsize=(14,7))
     sns.lineplot(data=df_filtra_dataset, x=df_filtra_dataset['ANO_SEP'].astype(str), y='PREÇO MÉDIO REVENDA', hue='PRODUTO', marker='o', palette=mapa_cores, ax=ax)
-    ax.set_title('Evolução do Preço Médio de Revenda de Combustíveis ao Longo dos Anos', size=15)
+    ax.set_title('Evolução do Preço Médio de Revenda de Combustíveis ao Longo dos Anos', size=20)
     ax.set_xlabel('Ano')
     ax.set_ylabel('Preço Médio (R$/l)')
     ax.tick_params(axis='x', rotation=45)
@@ -121,6 +124,7 @@ with col2:
 
     col2.pyplot(boxplot_meses)
 
+# df pra mostrar na seção preço médio revenda
 df_preco_medio = df_filtra_dataset.loc[:, ['PRODUTO', 'DATA', 'PREÇO MÉDIO REVENDA', 'PREÇO MÍNIMO REVENDA', 'PREÇO MÁXIMO REVENDA']]
 
 # Expander para mostrar df
@@ -132,19 +136,31 @@ mostrar_df.dataframe(df_preco_medio)
 st.divider()
 
 st.markdown('## Variação do Preço Médio de Revenda')
-container2 = st.container(border=False)
-col1, col2 = container2.columns([1, 2])
+# Container da seção de variação - 2 colunas
+container_variacao = st.container(border=False)
+col1, col2 = container_variacao.columns([0.65, 2.35])
 
+colunas_agregar_variacao = ['DESVIO PADRÃO REVENDA', 'COEF DE VARIAÇÃO REVENDA']
+variacao_revenda = df_filtra_dataset.groupby('PRODUTO')[colunas_agregar_variacao].mean()
+
+# Métricas Desvio Padrão Médio -------------------------------------------------------------------------
 with col1:
-    for i in range(len(selecao_comb)):
-        container = st.container(border=True)
-        container.write('a')
+    # Cria containers de acordo com a quantidade de combustíveis selecionados
+    for idx, combustivel_atual in enumerate(selecao_comb):
+        container = st.container(width='stretch', height='stretch', border=True)
+        container.write(f'{combustivel_atual}')
+        # Desvio Padrão Médio
+        container.write('Desvio Padrão Médio')
+        container.markdown(f'### **R${round(variacao_revenda.loc[combustivel_atual, "DESVIO PADRÃO REVENDA"], 2)}**')
+        # Coeficiente de Variação
+        container.write('Coeficiente de Variação Médio')
+        container.markdown(f'**R${round(variacao_revenda.loc[combustivel_atual, "COEF DE VARIAÇÃO REVENDA"], 2)}**')
 
 with col2:
     # Gráfico de Linha para Desvio Padrão por ano
     lin_std_ano, ax = plt.subplots(figsize=(10, 5))
     sns.lineplot(data=df_filtra_dataset, x=df_filtra_dataset['ANO_SEP'].astype(str), y='DESVIO PADRÃO REVENDA', hue='PRODUTO', marker='o', palette=mapa_cores)
-    ax.set_title('Média de Desvio Padrão de Revenda Para cada Combustível ao longo dos Anos', size=20)
+    ax.set_title('Média de Desvio Padrão de Revenda Para cada Combustível ao longo dos Anos', size=15)
     ax.set_xlabel('Ano')
     ax.set_ylabel('Média de Desvio Padrão (R$/l)')
     ax.legend(title='Tipo de Combustível')
@@ -154,12 +170,13 @@ with col2:
     # Gráfico de Linha para Desvio Padrão por mês
     lin_std_mes, ax = plt.subplots(figsize=(10, 5))
     sns.lineplot(data=df_filtra_dataset, x=df_filtra_dataset['MÊS_SEP'].astype(str), y='DESVIO PADRÃO REVENDA', hue='PRODUTO', marker='o', palette=mapa_cores)
-    ax.set_title('Média de Desvio Padrão de Revenda Para cada Combustível ao longo dos Meses', size=20)
+    ax.set_title('Média de Desvio Padrão de Revenda Para cada Combustível ao longo dos Meses', size=15)
     ax.set_xlabel('Mês')
     ax.set_ylabel('Média de Desvio Padrão (R$/l)')
     lin_std_mes.tight_layout()
     col2.pyplot(lin_std_mes)
 
+# df pra mostrar na seção variação de preço médio revenda
 df_variacao = df_filtra_dataset.loc[:, ['PRODUTO', 'DATA', 'DESVIO PADRÃO REVENDA', 'COEF DE VARIAÇÃO REVENDA']]
 
 # Expander para mostrar df
